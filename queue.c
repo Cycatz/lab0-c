@@ -260,8 +260,89 @@ void q_reverseK(struct list_head *head, int k)
     // https://leetcode.com/problems/reverse-nodes-in-k-group/
 }
 
+
+static struct list_head *find_mid(struct list_head *head, size_t len)
+{
+    size_t mid = len / 2;
+    struct list_head *entry = head;
+    while (1) {
+        if (mid-- == 0)
+            break;
+        entry = entry->next;
+    }
+    return entry;
+}
+
+static struct list_head *merge_sort(struct list_head *head, size_t len)
+{
+    if (len == 0 || len == 1) {
+        struct list_head *new = q_new();
+        q_insert_tail(new, list_entry(head, element_t, list)->value);
+        return new;
+    }
+
+    struct list_head *mid = find_mid(head, len);
+    size_t l, r;
+
+    l = len / 2;
+    r = len - l;
+
+    struct list_head *l_head = merge_sort(head, l);
+    struct list_head *r_head = merge_sort(mid, r);
+
+    /* merge */
+    struct list_head *lcur = l_head->next, *rcur = r_head->next;
+    element_t *l_ele, *r_ele;
+
+    struct list_head *new = q_new();
+
+    while (l > 0 && r > 0) {
+        l_ele = list_entry(lcur, element_t, list);
+        r_ele = list_entry(rcur, element_t, list);
+
+        if (strcmp(l_ele->value, r_ele->value) <= 0) {
+            q_insert_tail(new, l_ele->value);
+            l--;
+        } else {
+            q_insert_tail(new, r_ele->value);
+            r--;
+        }
+    }
+
+    while (l && r-- > 0) {
+        r_ele = list_entry(rcur, element_t, list);
+        q_insert_tail(new, r_ele->value);
+        rcur = rcur->next;
+    }
+    while (r && l-- > 0) {
+        l_ele = list_entry(lcur, element_t, list);
+        q_insert_tail(new, l_ele->value);
+        lcur = lcur->next;
+    }
+
+    q_free(l_head);
+    q_free(r_head);
+
+    return new;
+}
+
+
 /* Sort elements of queue in ascending order */
-void q_sort(struct list_head *head) {}
+void q_sort(struct list_head *head)
+{
+    if (head == NULL || head->next == head)
+        return;
+
+    size_t len = q_size(head);
+    struct list_head *new = merge_sort(head, len);
+
+    head->next = new->next;
+    head->prev = new->prev;
+    new->next->prev = head;
+    new->prev->next = head;
+
+    q_free(new);
+}
 
 /* Remove every node which has a node with a strictly greater value anywhere to
  * the right side of it */
