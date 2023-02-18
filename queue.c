@@ -10,6 +10,13 @@
  *   cppcheck-suppress nullPointer
  */
 
+static void delete_node(element_t *e)
+{
+    list_del(&e->list);
+    if (e->value)
+        free(e->value);
+    free(e);
+}
 
 /* Create an empty queue */
 struct list_head *q_new()
@@ -24,6 +31,7 @@ struct list_head *q_new()
     return &q->list;
 }
 
+
 /* Free all storage used by queue */
 void q_free(struct list_head *l)
 {
@@ -32,10 +40,7 @@ void q_free(struct list_head *l)
 
     element_t *cur, *next;
     list_for_each_entry_safe (cur, next, l, list) {
-        list_del(&cur->list);
-        if (cur->value)
-            free(cur->value);
-        free(cur);
+        delete_node(cur);
     }
     /* free the head */
     cur = list_entry(l, element_t, list);
