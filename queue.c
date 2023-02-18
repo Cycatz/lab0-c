@@ -224,6 +224,8 @@ void q_reverse(struct list_head *head)
     entry = head->next;
     safe = entry->next;
     while (1) {
+        /* Suppress unreadVariable */
+        (void) safe;
         if (entry == head)
             break;
         safe = entry->next;
