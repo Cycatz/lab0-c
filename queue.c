@@ -18,6 +18,20 @@ static void delete_node(element_t *e)
     free(e);
 }
 
+
+static struct list_head *find_mid(struct list_head *head, size_t len)
+{
+    size_t mid = len / 2;
+    struct list_head *entry = head;
+    while (1) {
+        if (mid-- == 0)
+            break;
+        entry = entry->next;
+    }
+    return entry;
+}
+
+
 /* Create an empty queue */
 struct list_head *q_new()
 {
@@ -161,16 +175,12 @@ bool q_delete_mid(struct list_head *head)
         return false;
 
     // https://leetcode.com/problems/delete-the-middle-node-of-a-linked-list/
-    size_t pos;
-    pos = q_size(head) / 2 + 1;
+    size_t size = q_size(head);
+    struct list_head *mid = find_mid(head->next, size);
+    element_t *entry = list_entry(mid, element_t, list);
 
-    element_t *entry = NULL;
-    list_for_each_entry (entry, head, list) {
-        if (--pos == 0) {
-            delete_node(entry);
-            break;
-        }
-    }
+    delete_node(entry);
+
     return true;
 }
 
@@ -260,18 +270,6 @@ void q_reverseK(struct list_head *head, int k)
     // https://leetcode.com/problems/reverse-nodes-in-k-group/
 }
 
-
-static struct list_head *find_mid(struct list_head *head, size_t len)
-{
-    size_t mid = len / 2;
-    struct list_head *entry = head;
-    while (1) {
-        if (mid-- == 0)
-            break;
-        entry = entry->next;
-    }
-    return entry;
-}
 
 static struct list_head *merge_sort(struct list_head *head, size_t len)
 {
