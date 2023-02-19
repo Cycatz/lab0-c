@@ -276,9 +276,7 @@ static struct list_head *find_mid(struct list_head *head, size_t len)
 static struct list_head *merge_sort(struct list_head *head, size_t len)
 {
     if (len == 0 || len == 1) {
-        struct list_head *new = q_new();
-        q_insert_tail(new, list_entry(head, element_t, list)->value);
-        return new;
+        return head;
     }
 
     struct list_head *mid = find_mid(head, len);
@@ -290,40 +288,37 @@ static struct list_head *merge_sort(struct list_head *head, size_t len)
     struct list_head *l_head = merge_sort(head, l);
     struct list_head *r_head = merge_sort(mid, r);
 
-    /* merge */
-    struct list_head *lcur = l_head->next, *rcur = r_head->next;
-    element_t *l_ele, *r_ele;
+    struct list_head *l_cur = l_head;
+    struct list_head *r_cur = r_head;
 
-    struct list_head *new = q_new();
+
+    LIST_HEAD(new);
+    struct list_head *tmp = &new;
 
     while (l > 0 && r > 0) {
-        l_ele = list_entry(lcur, element_t, list);
-        r_ele = list_entry(rcur, element_t, list);
+        element_t *l_ele, *r_ele;
+        l_ele = list_entry(l_cur, element_t, list);
+        r_ele = list_entry(r_cur, element_t, list);
 
         if (strcmp(l_ele->value, r_ele->value) <= 0) {
-            q_insert_tail(new, l_ele->value);
+            tmp->next = l_cur;
+            tmp = tmp->next;
+            l_cur = l_cur->next;
             l--;
         } else {
-            q_insert_tail(new, r_ele->value);
+            tmp->next = r_cur;
+            tmp = tmp->next;
+            r_cur = r_cur->next;
             r--;
         }
     }
+    if (l)
+        tmp->next = l_cur;
 
-    while (l && r-- > 0) {
-        r_ele = list_entry(rcur, element_t, list);
-        q_insert_tail(new, r_ele->value);
-        rcur = rcur->next;
-    }
-    while (r && l-- > 0) {
-        l_ele = list_entry(lcur, element_t, list);
-        q_insert_tail(new, l_ele->value);
-        lcur = lcur->next;
-    }
+    if (r)
+        tmp->next = r_cur;
 
-    q_free(l_head);
-    q_free(r_head);
-
-    return new;
+    return new.next;
 }
 
 
@@ -334,14 +329,18 @@ void q_sort(struct list_head *head)
         return;
 
     size_t len = q_size(head);
-    struct list_head *new = merge_sort(head, len);
+    struct list_head *new = merge_sort(head->next, len);
+    struct list_head *cur = new, *prev = head;
 
-    head->next = new->next;
-    head->prev = new->prev;
-    new->next->prev = head;
-    new->prev->next = head;
+    while (len-- > 0) {
+        cur->prev = prev;
+        prev = cur;
+        cur = cur->next;
+    }
 
-    q_free(new);
+    head->next = new;
+    head->prev = prev;
+    prev->next = head;
 }
 
 /* Remove every node which has a node with a strictly greater value anywhere to
