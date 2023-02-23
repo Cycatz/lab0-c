@@ -268,6 +268,65 @@ void q_reverse(struct list_head *head)
 void q_reverseK(struct list_head *head, int k)
 {
     // https://leetcode.com/problems/reverse-nodes-in-k-group/
+
+    if (k <= 1 || head == NULL || head->next == head)
+        return;
+
+    LIST_HEAD(new_head);
+    struct list_head *nhead = &new_head;
+
+    struct list_head *cur, *next;
+    cur = head->next;
+    next = cur->next;
+
+    int cnt = 0;
+
+    while (1) {
+        if (cur == head)
+            break;
+        if (++cnt % k == 0) {
+            /* insert to tail  */
+            struct list_head *pos = cur;
+            for (int i = 0; i < k; i++) {
+                nhead->next = pos;
+                nhead = nhead->next;
+                pos = pos->prev;
+            }
+        }
+        cur = next;
+        next = next->next;
+    }
+
+    /* Handle cnt % k != 0 condition */
+    size_t left = cnt % k;
+    struct list_head *left_begin = head;
+    while (1) {
+        if (left-- == 0)
+            break;
+        left_begin = left_begin->prev;
+    }
+
+    if (cnt % k) {
+        nhead->next = left_begin;
+        nhead = head->prev;
+    }
+
+
+    /* Rebuild reverse path  */
+    head->prev = nhead;
+    head->next = new_head.next;
+    nhead->next = head;
+
+    struct list_head *prev = head;
+    cur = head->next;
+
+    while (1) {
+        if (cur == head)
+            break;
+        cur->prev = prev;
+        prev = cur;
+        cur = cur->next;
+    }
 }
 
 
