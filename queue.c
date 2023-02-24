@@ -113,7 +113,7 @@ bool q_insert_tail(struct list_head *head, char *s)
 /* Remove an element from head of queue */
 element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
 {
-    if (head == NULL || head->next == head)
+    if (head == NULL || list_empty(head))
         return NULL;
 
     struct list_head *first = head->next;
@@ -171,7 +171,7 @@ int q_size(struct list_head *head)
 /* Delete the middle node in queue */
 bool q_delete_mid(struct list_head *head)
 {
-    if (head == NULL || head->next == head)
+    if (head == NULL || list_empty(head))
         return false;
 
     // https://leetcode.com/problems/delete-the-middle-node-of-a-linked-list/
@@ -188,7 +188,7 @@ bool q_delete_mid(struct list_head *head)
 bool q_delete_dup(struct list_head *head)
 {
     // https://leetcode.com/problems/remove-duplicates-from-sorted-list-ii/
-    if (head == NULL || head->next == head)
+    if (head == NULL || list_empty(head))
         return false;
 
     bool dup = false;
@@ -269,7 +269,7 @@ void q_reverseK(struct list_head *head, int k)
 {
     // https://leetcode.com/problems/reverse-nodes-in-k-group/
 
-    if (k <= 1 || head == NULL || head->next == head)
+    if (k <= 1 || head == NULL || list_empty(head))
         return;
 
     LIST_HEAD(new_head);
@@ -382,7 +382,7 @@ static struct list_head *merge_sort(struct list_head *head, size_t len)
 /* Sort elements of queue in ascending order */
 void q_sort(struct list_head *head)
 {
-    if (head == NULL || head->next == head)
+    if (head == NULL || list_empty(head))
         return;
 
     size_t len = q_size(head);
