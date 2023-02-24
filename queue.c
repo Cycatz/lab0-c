@@ -122,7 +122,7 @@ element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
     element_t *entry = list_entry(first, element_t, list);
     size_t slen, dlen;
 
-    if (!entry->value || bufsize == 0)
+    if (!entry->value || !sp || bufsize == 0)
         return entry;
 
     slen = strlen(entry->value);
@@ -145,7 +145,7 @@ element_t *q_remove_tail(struct list_head *head, char *sp, size_t bufsize)
     element_t *entry = list_entry(last, element_t, list);
     size_t slen, dlen;
 
-    if (!entry->value || bufsize == 0)
+    if (!entry->value || !sp || bufsize == 0)
         return entry;
 
     slen = strlen(entry->value);
