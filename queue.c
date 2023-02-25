@@ -332,7 +332,7 @@ void q_reverseK(struct list_head *head, int k)
 
 static struct list_head *merge_sort(struct list_head *head, size_t len)
 {
-    if (len == 0 || len == 1) {
+    if (len <= 1) {
         return head;
     }
 
