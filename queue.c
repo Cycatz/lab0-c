@@ -284,9 +284,7 @@ void q_reverseK(struct list_head *head, int k)
 
     cur = head->next;
     next = cur->next;
-    while (1) {
-        if (cnt == maximum)
-            break;
+    while (maximum-- > 0) {
 
         /* Insert to head */
         cur->next = rcur;
@@ -294,7 +292,7 @@ void q_reverseK(struct list_head *head, int k)
         rcur->prev = cur;
         rcur = rcur->prev;
 
-        if (++cnt % k == 0) {
+        if (++cnt == k) {
             struct list_head *last_new = rcur->prev->prev;
             rcur->prev = last;
             last->next = rcur;
@@ -305,12 +303,15 @@ void q_reverseK(struct list_head *head, int k)
             /* Reset rcur  */
             rcur = &rcur_head;
             INIT_LIST_HEAD(rcur);
+
+            /* Reset cnt */
+            cnt = 0;
         }
         cur = next;
         next = next->next;
     }
 
-    /* Directly connect to left elements*/
+    /* Directly connect to the rest elements*/
     if (size != maximum) {
         last->next = cur;
         cur->prev = last;
