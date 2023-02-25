@@ -272,61 +272,60 @@ void q_reverseK(struct list_head *head, int k)
     if (k <= 1 || head == NULL || list_empty(head))
         return;
 
-    LIST_HEAD(new_head);
-    struct list_head *nhead = &new_head;
-
-    struct list_head *cur, *next;
-    cur = head->next;
-    next = cur->next;
+    LIST_HEAD(last_head);
+    LIST_HEAD(rcur_head);
+    struct list_head *last = &last_head, *rcur = &rcur_head;
+    struct list_head *cur, *next, *first = NULL;
 
     int cnt = 0;
 
+    size_t size = q_size(head);
+    size_t maximum = (size / k) * k;
+
+    cur = head->next;
+    next = cur->next;
     while (1) {
-        if (cur == head)
+        if (cnt == maximum)
             break;
+
+        /* Insert to head */
+        cur->next = rcur;
+        cur->prev = rcur->prev;
+        rcur->prev = cur;
+        rcur = rcur->prev;
+
         if (++cnt % k == 0) {
-            /* insert to tail  */
-            struct list_head *pos = cur;
-            for (int i = 0; i < k; i++) {
-                nhead->next = pos;
-                nhead = nhead->next;
-                pos = pos->prev;
-            }
+            struct list_head *last_new = rcur->prev->prev;
+            rcur->prev = last;
+            last->next = rcur;
+            last = last_new;
+            if (first == NULL)
+                first = rcur;
+
+            /* Reset rcur  */
+            rcur = &rcur_head;
+            INIT_LIST_HEAD(rcur);
         }
         cur = next;
         next = next->next;
     }
 
-    /* Handle cnt % k != 0 condition */
-    size_t left = cnt % k;
-    struct list_head *left_begin = head;
-    while (1) {
-        if (left-- == 0)
-            break;
-        left_begin = left_begin->prev;
+    /* Directly connect to left elements*/
+    if (size != maximum) {
+        last->next = cur;
+        cur->prev = last;
+        last = head->prev;
     }
 
-    if (cnt % k) {
-        nhead->next = left_begin;
-        nhead = head->prev;
-    }
+    /* Occur when q_size < k */
+    if (first == NULL)
+        first = head->next;
 
-
-    /* Rebuild reverse path  */
-    head->prev = nhead;
-    head->next = new_head.next;
-    nhead->next = head;
-
-    struct list_head *prev = head;
-    cur = head->next;
-
-    while (1) {
-        if (cur == head)
-            break;
-        cur->prev = prev;
-        prev = cur;
-        cur = cur->next;
-    }
+    /* Connect to head  */
+    head->prev = last;
+    last->next = head;
+    head->next = first;
+    first->prev = head;
 }
 
 
