@@ -13,8 +13,7 @@
 static void delete_node(element_t *e)
 {
     list_del(&e->list);
-    if (e->value)
-        free(e->value);
+    free(e->value);
     free(e);
 }
 
