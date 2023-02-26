@@ -642,7 +642,7 @@ bool do_sort(int argc, char *argv[])
         report(3, "Warning: Calling sort on single node");
     error_check();
 
-    set_noallocate_mode(true);
+    set_noallocate_mode(false);
     if (current && exception_setup(true))
         q_sort(current->q);
     exception_cancel();
