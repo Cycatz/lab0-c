@@ -336,17 +336,10 @@ static struct list_head *merge_sort(struct list_head *head, size_t len)
     }
 
     struct list_head *mid = find_mid(head, len);
-    size_t l, r;
+    size_t l = len / 2, r = len - l;
 
-    l = len / 2;
-    r = len - l;
-
-    struct list_head *l_head = merge_sort(head, l);
-    struct list_head *r_head = merge_sort(mid, r);
-
-    struct list_head *l_cur = l_head;
-    struct list_head *r_cur = r_head;
-
+    struct list_head *l_cur = merge_sort(head, l);
+    struct list_head *r_cur = merge_sort(mid, r);
 
     LIST_HEAD(new);
     struct list_head *tmp = &new;
@@ -358,22 +351,21 @@ static struct list_head *merge_sort(struct list_head *head, size_t len)
 
         if (strcmp(l_ele->value, r_ele->value) <= 0) {
             tmp->next = l_cur;
-            tmp = tmp->next;
             l_cur = l_cur->next;
             l--;
         } else {
             tmp->next = r_cur;
-            tmp = tmp->next;
             r_cur = r_cur->next;
             r--;
         }
+        tmp = tmp->next;
     }
+
     if (l)
         tmp->next = l_cur;
 
     if (r)
         tmp->next = r_cur;
-
     return new.next;
 }
 
