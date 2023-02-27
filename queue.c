@@ -2,7 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+// clang-format off
 #include "queue.h"
+#include "custom.h"
+// clang-format on
 
 /* Notice: sometimes, Cppcheck would find the potential NULL pointer bugs,
  * but some of them cannot occur. You can suppress them by adding the
@@ -328,7 +331,6 @@ void q_reverseK(struct list_head *head, int k)
     first->prev = head;
 }
 
-#ifndef USE_LIST_SORT
 static struct list_head *merge_sort(struct list_head *head, size_t len)
 {
     if (len <= 1) {
@@ -399,7 +401,6 @@ void q_sort(struct list_head *head)
     prev->next = head;
 }
 
-#else
 static struct list_head *merge(struct list_head *a, struct list_head *b)
 {
     // cppcheck-suppress unassignedVariable
@@ -484,7 +485,7 @@ static void observe(struct list_head *head)
 }
 #endif
 
-void q_sort(struct list_head *head)
+void q_list_sort(struct list_head *head)
 {
     /* Now we can experiment with the cloned queue */
     struct list_head *list = head->next, *pending = NULL;
@@ -546,7 +547,6 @@ void q_sort(struct list_head *head)
     }
     merge_final(head, pending, list);
 }
-#endif
 
 
 
