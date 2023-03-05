@@ -2,7 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+// clang-format off
 #include "queue.h"
+#include "custom.h"
+// clang-format on
 
 /* Notice: sometimes, Cppcheck would find the potential NULL pointer bugs,
  * but some of them cannot occur. You can suppress them by adding the
@@ -275,7 +278,6 @@ void q_reverseK(struct list_head *head, int k)
     cur = head->next;
     next = cur->next;
     while (maximum-- > 0) {
-
         /* Insert to head */
         cur->next = rcur;
         cur->prev = rcur->prev;
@@ -318,7 +320,6 @@ void q_reverseK(struct list_head *head, int k)
     head->next = first;
     first->prev = head;
 }
-
 
 static struct list_head *merge_sort(struct list_head *head, size_t len)
 {
@@ -381,6 +382,155 @@ void q_sort(struct list_head *head)
     head->prev = prev;
     prev->next = head;
 }
+
+static struct list_head *merge(struct list_head *a, struct list_head *b)
+{
+    // cppcheck-suppress unassignedVariable
+    struct list_head *head, **tail = &head;
+    while (1) {
+        if (strcmp(list_entry(a, element_t, list)->value,
+                   list_entry(b, element_t, list)->value) <= 0) {
+            *tail = a;
+            tail = &a->next;
+            a = a->next;
+            if (!a) {
+                *tail = b;
+                break;
+            }
+        } else {
+            *tail = b;
+            tail = &b->next;
+            b = b->next;
+            if (!b) {
+                *tail = a;
+                break;
+            }
+        }
+    }
+    return head;
+}
+
+static void merge_final(struct list_head *head,
+                        struct list_head *a,
+                        struct list_head *b)
+{
+    struct list_head *tail = head;
+
+    while (1) {
+        if (strcmp(list_entry(a, element_t, list)->value,
+                   list_entry(b, element_t, list)->value) <= 0) {
+            tail->next = a;
+            a->prev = tail;
+            tail = a;
+            a = a->next;
+            if (!a) {
+                break;
+            }
+        } else {
+            tail->next = b;
+            b->prev = tail;
+            tail = b;
+            b = b->next;
+            if (!b) {
+                b = a;
+                break;
+            }
+        }
+    }
+    tail->next = b;
+    do {
+        b->prev = tail;
+        tail = b;
+        b = b->next;
+    } while (b);
+    tail->next = head;
+    head->prev = tail;
+}
+
+
+#ifdef LIST_SORT_DETAILS
+/* Only support single linked list  */
+static void observe(struct list_head *head)
+{
+    printf("[ ");
+    struct list_head *n = head;
+
+    while (1) {
+        if (n == NULL)
+            break;
+
+        element_t *e = list_entry(n, element_t, list);
+        printf("%s ", e->value);
+        n = n->next;
+    }
+    printf("]");
+}
+#endif
+
+void q_list_sort(struct list_head *head)
+{
+    /* Now we can experiment with the cloned queue */
+    struct list_head *list = head->next, *pending = NULL;
+    size_t count = 0;
+
+    if (list == head->prev)
+        return;
+
+    /* Convert to a null-terminated single linked-list */
+    head->prev->next = NULL;
+
+    do {
+        size_t bits;
+        struct list_head **tail = &pending;
+        for (bits = count; bits & 1; bits >>= 1)
+            tail = &(*tail)->prev;
+        if (bits) {
+            struct list_head *a = *tail, *b = a->prev;
+            a = merge(b, a);
+            /* Restore the old prev link */
+            a->prev = b->prev;
+            *tail = a;
+        }
+
+        list->prev = pending;
+        pending = list;
+        list = list->next;
+        pending->next = NULL;
+        count++;
+
+#ifdef LIST_SORT_DETAILS
+        printf("=== Count: %zu ===\n", count);
+        printf("List: ");
+        observe(list);
+        printf("\n");
+
+        struct list_head *o = pending;
+        printf("Pending");
+        while (o) {
+            printf(" -> ");
+            observe(o);
+            o = o->prev;
+        }
+        printf("\n");
+#endif
+
+    } while (list);
+
+    list = pending;
+    pending = pending->prev;
+
+    for (;;) {
+        struct list_head *next = pending->prev;
+        if (!next)
+            break;
+
+        list = merge(pending, list);
+        pending = next;
+    }
+    merge_final(head, pending, list);
+}
+
+
 
 /* Remove every node which has a node with a strictly greater value anywhere to
  * the right side of it */
