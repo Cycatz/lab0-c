@@ -5,6 +5,7 @@
 // clang-format off
 #include "queue.h"
 #include "custom.h"
+#include "random.h"
 // clang-format on
 
 /* Notice: sometimes, Cppcheck would find the potential NULL pointer bugs,
@@ -590,4 +591,56 @@ int q_merge(struct list_head *head)
 
     q_sort(first_queue);
     return q_size(first_queue);
+}
+
+void q_shuffle(struct list_head *head)
+{
+    size_t rand;
+    size_t len = q_size(head);
+    size_t idx = 0;
+    struct list_head *ent = head->next;
+    LIST_HEAD(tmp);
+
+
+    while (idx < len) {
+        size_t tidx = 0;
+        struct list_head *target = ent;
+
+        randombytes((uint8_t *) &rand, sizeof(rand));
+        rand = rand % (len - idx);
+
+        while (tidx++ != rand) {
+            target = target->next;
+        }
+
+        /* Swap two elements */
+        if (ent->next == target) {
+            /* Avoid node->next = node */
+            target->prev = ent->prev;
+            ent->prev->next = target;
+
+            ent->next = target->next;
+            target->next->prev = ent;
+
+            target->next = ent;
+            ent->prev = target;
+        } else {
+            tmp.next = ent->next;
+            tmp.prev = ent->prev;
+
+            ent->next = target->next;
+            ent->prev = target->prev;
+
+            target->next = tmp.next;
+            target->prev = tmp.prev;
+
+            ent->next->prev = ent;
+            ent->prev->next = ent;
+
+            target->next->prev = target;
+            target->prev->next = target;
+        }
+        ent = target->next;
+        idx++;
+    }
 }
